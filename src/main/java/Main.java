@@ -12,6 +12,7 @@ public class Main {
 
     public static void main(String[] args) throws JsonProcessingException, SQLException {
 
+        //Conexão com Banco de dados
         String jdbcURL = "jdbc:mysql://35.199.97.222:3306/catbase";
         String username = "root";
         String password = "CAT154cat";
@@ -19,6 +20,8 @@ public class Main {
         Connection connection = DriverManager.getConnection(jdbcURL, username, password);
         Statement st = connection.createStatement();
 
+
+        //Pega as caracteristicas dos gatos da API
         HttpResponse<String> response =
                 Unirest.get("https://api.thecatapi.com/v1/breeds?attach_breed=0").header("x" + "-api-key",
                         "80e62e7b" + "-2742-46c1-820b-06e8245a3935").asString();
@@ -28,18 +31,11 @@ public class Main {
         List<Caracteristicas> catsJsonList = mapper.readValue(response.getBody(), new TypeReference<>() {
         });
 
-        /*
-        catsJsonList.forEach(caracteristicas -> System.out.println("INSERT INTO `Racas`(raca, origem, temperamento, descricao) values ('" + caracteristicas.getName() + "', '" +
-                caracteristicas.getOrigin() + "', '" +
-                caracteristicas.getTemperament() + "', '" +
-                caracteristicas.getDescription() + "');"));
-
-         */
-
+        //Salva origem, temperamento e descrição de cada raça
         catsJsonList.forEach(caracteristicas -> {
 
             String query = "INSERT INTO `Gatos`(raca, origem, temperamento, descricao) values (?, ?, ?, ?)";
-            PreparedStatement statement= null;
+            PreparedStatement statement = null;
             try {
                 statement = connection.prepareStatement(query);
                 statement.setString(1, caracteristicas.getName());
@@ -52,31 +48,15 @@ public class Main {
                 e.printStackTrace();
             }
 
-            /*
-            try {
-                st.executeUpdate(String.format('INSERT INTO `Gatos`(raca, origem, temperamento, descricao) values ("%s");', caracteristicas.getName()));
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-             */
-        });
-        
-        //TODO salvar as raças no banco
-
-        //Salva origem, temperamento e descrição de cada raça
-        catsJsonList.forEach(caracteristicas -> {
-            caracteristicas.getOrigin();
-            caracteristicas.getTemperament();
-            caracteristicas.getDescription();
-            //TODO salvar dados no banco
         });
 
-        //Salva 3 fotos de cada raça
+
+        //Pega 3 fotos de cada raça
         catsJsonList.forEach(caracteristicas -> {
 
             HttpResponse<String> response2 =
-                    Unirest.get("https://api.thecatapi.com/v1/breeds?attach_breed=" + caracteristicas.getName()).header("x-api-key", "80e62e7b-2742-46c1-820b-06e8245a3935").asString();
+                    Unirest.get("https://api.thecatapi.com/v1/breeds?attach_breed=" + caracteristicas.getName())
+                            .header("x-api-key", "80e62e7b-2742-46c1-820b-06e8245a3935").asString();
 
             List<Caracteristicas> imageCatJsonList = null;
             List<String> fotos = new ArrayList<>();
@@ -89,30 +69,76 @@ public class Main {
             }
 
             for (int i = 0; i <= 2; i++) {
-                fotos.add(imageCatJsonList.get(i).getImage().getUrl());
+                if (imageCatJsonList != null) {
+                    fotos.add(imageCatJsonList.get(i).getImage().getUrl());
+                }
             }
 
-            //TODO salvar fotos no banco
+            //Salva as fotos no banco de dados
+            fotos.forEach(s -> {
+
+                String query = "INSERT INTO `Fotos`(raca, url) values (?, ?)";
+                PreparedStatement statement = null;
+                try {
+                    statement = connection.prepareStatement(query);
+                    statement.setString(1, caracteristicas.getName());
+                    statement.setString(2, s);
+                    System.out.println(statement);
+                    statement.execute();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+            });
 
         });
 
-        //Salva 3 fotos com chápeu
+        //Pega 3 fotos com chápeu
         HttpResponse<String> response3 = Unirest.get("https://api.thecatapi.com/v1/images/search?limit=3&category_ids"
                 + "=1").header("x-api-key", "80e62e7b-2742-46c1-820b-06e8245a3935").asString();
 
         List<Imagens> hatsJsonList = (mapper.readValue(response3.getBody(), new TypeReference<>() {
         }));
 
-        //TODO salvar as fotos no banco
+        //Salva 3 fotos com chápeu no banco de dados
+        hatsJsonList.forEach(s -> {
 
-        //Salva 3 fotos com óculos
+            String query = "INSERT INTO `FotosChapeu`(url) values (?)";
+            PreparedStatement statement = null;
+            try {
+                statement = connection.prepareStatement(query);
+                statement.setString(1, s.getUrl());
+                System.out.println(statement);
+                statement.execute();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        });
+
+
+        //Pega 3 fotos com óculos
         HttpResponse<String> response4 = Unirest.get("https://api.thecatapi.com/v1/images/search?limit=3&category_ids"
                 + "=4").header("x-api-key", "80e62e7b-2742-46c1-820b-06e8245a3935").asString();
 
         List<Imagens> glassesJsonList = (mapper.readValue(response4.getBody(), new TypeReference<>() {
         }));
 
-        //TODO salvar as fotos no banco
+        //Salva 3 fotos com óculos no banco de dados
+        glassesJsonList.forEach(s -> {
+
+            String query = "INSERT INTO `FotosOculos`(url) values (?)";
+            PreparedStatement statement = null;
+            try {
+                statement = connection.prepareStatement(query);
+                statement.setString(1, s.getUrl());
+                System.out.println(statement);
+                statement.execute();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        });
 
     }
 

@@ -33,19 +33,40 @@
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="cea5be80-77b5-4b1e-bbca-2b7545a2ca74">
       <console name="Connection" type="STANDARD" schema="catbase" session="Main"><![CDATA[create table Gatos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    raca VARCHAR(50) NOT NULL,
+    raca VARCHAR(50) NOT NULL PRIMARY KEY,
     origem VARCHAR(50) NOT NULL,
     temperamento VARCHAR(300) NOT NULL,
     descricao VARCHAR(2000) NOT NULL
 );
 
-create table Racas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(50) NOT NULL
+create table Fotos (
+    fotoId INT AUTO_INCREMENT PRIMARY KEY,
+    raca VARCHAR(50),
+    url VARCHAR(100) NOT NULL,
+    FOREIGN KEY (raca) REFERENCES Gatos(raca)
 );
 
-select * from `Gatos`;
+create table FotosChapeu (
+    fotoId INT AUTO_INCREMENT PRIMARY KEY,
+    url VARCHAR(100) NOT NULL
+);
+
+create table FotosOculos (
+    fotoId INT AUTO_INCREMENT PRIMARY KEY,
+    url VARCHAR(100) NOT NULL
+);
+
+SELECT * FROM `Fotos` 
+INNER JOIN `Gatos` ON Gatos.raca = Fotos.raca
+WHERE Gatos.raca = 'Himalayan'
+
+select * from Gatos;
+
+select * from Fotos;
+
+select * from FotosChapeu;
+
+select * from FotosOculos;
 
 delete from `Gatos`;
 
@@ -113,7 +134,7 @@ set innodb_lock_wait_timeout=100]]></console>
           <deprecated-pwd value="Q0FUMTU0Y2F0" />
         </database>
         <properties>
-          <auto-commit value="false" />
+          <auto-commit value="true" />
         </properties>
         <ssh-settings>
           <active value="false" />
